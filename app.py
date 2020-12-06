@@ -30,7 +30,6 @@ def markup():
     if request.method == 'POST':
         code = request.form['code']
         lexer = guess_lexer(code)
-        print(f"Choosing {lexer}")
         result = highlight(code, lexer, formatter)
         get_pygments_classes()
         return render_template('show_twinkle.html', code=result)
