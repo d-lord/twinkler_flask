@@ -4,6 +4,7 @@
     <link rel="stylesheet" href="{{ url_for('smart_css') }}">
     <script src="{{ url_for('smart_js') }}"></script>
     <title>Twinkle</title>
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
 </head>
 <body onLoad="transitionOff(); change(); transitionOn();">
 {{ code | safe }} {# we do want to embed pygments' output as raw HTML, so we must mark it as 'safe'. boy, I hope their output is indeed safe. #}
