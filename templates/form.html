@@ -31,10 +31,23 @@
     </style>
 </head>
 <body>
-<form action="{{ url_for('markup') }}" method="post">
+<form action="{{ url_for('markup') }}" method="post" id="form">
     <label for="code"><h1>What code do you want formatted?</h1></label>
-    <textarea id="code" name="code" rows="20" cols="80"></textarea>
+    <textarea id="code" name="code"></textarea>
     <input type="submit" value="Submit">
 </form>
+<script>
+    // David Walsh is a legend: https://davidwalsh.name/command-enter-submit-forms
+    const form = document.getElementById("form");
+    form.addEventListener('keydown', function (e) {
+        console.log("KeyDown fired");
+        if (!(e.keyCode === 13 && e.metaKey)) return;
+
+        const target = e.target;
+        if (target.form) {
+            target.form.submit();
+        }
+    });
+</script>
 </body>
 </html>
