@@ -18,10 +18,11 @@ div.highlight {
 }
 button {
     position: fixed;
-    top: 1em;
-    right: 1em;
-    width: 20em;
-    height: 6em;
+    top: 1rem;
+    right: 1rem;
+    width: 10rem;
+    height: 4rem;
+    font-size: 2em;
 }
 
 div.highlight > pre {
