@@ -1,0 +1,42 @@
+textarea {
+    margin: 0.4em 0;
+    width: 80%;
+    background-color: #303030;
+    color: #f6f3e8;
+    flex-grow: 1;
+}
+
+body {
+    background-color: #303030;
+    color: #f6f3e8;
+}
+
+html, body {
+    margin: 0;
+    padding: 0;
+    font-size: 28px;
+}
+
+form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100vh;
+    padding: 0 0 0.5em 0;
+    box-sizing: border-box;
+}
+
+h1 {
+    margin-bottom: 0.1em;
+    margin-top: 0.2em;
+}
+
+p {
+    margin-top: 0;
+    font-size: 0.5em;
+}
+
+a, a:visited {
+    color: #f6f3e8;
+}
