@@ -1,0 +1,38 @@
+:root {
+     /* normally this would contain variable definitions, but the JS does that for us */
+    font-size: 16px;
+    {% for css_class, css_variable in css_classes_and_variables %}
+    --{{ css_variable }}: white;{% endfor %}
+}
+
+body {
+    background-color: #303030;
+}
+div.highlight {
+    margin: -1em 0;
+}
+button {
+    position: fixed;
+    top: 1em;
+    right: 1em;
+    width: 20em;
+    height: 6em;
+}
+
+div.highlight > pre {
+    background-color: #303030;
+    padding: 2em;
+    color: white;
+    font-family: monospace;
+}
+
+span {
+    transition: all 0.5s;
+    color: var(--unknown); /* a fallback - this should always be overridden by a specific class with a defined colour, but the author is forgetful */
+}
+
+{% for css_class, css_variable in css_classes_and_variables %}
+{{ css_class }} {
+    color: var(--{{ css_variable }});
+}
+{% endfor %}

@@ -1,0 +1,112 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html>
+<head>
+<meta http-equiv="content-type" content="text/html; charset=UTF-8">
+<title>~/repos/runemacs/new.html</title>
+<meta name="Generator" content="Vim/8.0">
+<meta name="plugin-version" content="vim8.1_v1">
+<meta name="syntax" content="python">
+<meta name="settings" content="number_lines,use_css,pre_wrap,no_foldcolumn,expand_tabs,line_ids,prevent_copy=">
+<meta name="colorscheme" content="base16-flat">
+<style type="text/css">
+<!--
+pre { white-space: pre-wrap; font-family: monospace; color: #c0c0c0; background-color: #000000; }
+body { font-family: monospace; color: #c0c0c0; background-color: #000000; }
+* { font-size: 1em; }
+.pythonStatement { color: #c000c0; }
+.Function { color: #0000c0; }
+.Number { color: #ff6060; }
+.LineNr { color: #808080; background-color: #00ff00; padding-bottom: 1px; }
+.Statement { color: #c00000; font-weight: bold; }
+.pythonRepeat { color: #c000c0; }
+.pythonOperator { color: #c000c0; }
+.pythonInclude { color: #c000c0; }
+.Conditional { color: #c000c0; }
+.Comment { color: #808080; }
+.String { color: #008000; }
+-->
+</style>
+
+<script type='text/javascript'>
+<!--
+
+/* function to open any folds containing a jumped-to line before jumping to it */
+function JumpToLine()
+{
+  var lineNum;
+  lineNum = window.location.hash;
+  lineNum = lineNum.substr(1); /* strip off '#' */
+
+  if (lineNum.indexOf('L') == -1) {
+    lineNum = 'L'+lineNum;
+  }
+  var lineElem = document.getElementById(lineNum);
+  /* Always jump to new location even if the line was hidden inside a fold, or
+   * we corrected the raw number to a line ID.
+   */
+  if (lineElem) {
+    lineElem.scrollIntoView(true);
+  }
+  return true;
+}
+if ('onhashchange' in window) {
+  window.onhashchange = JumpToLine;
+}
+
+-->
+</script>
+</head>
+<body onload='JumpToLine();'>
+<pre id='vimCodeElement'>
+<span id="L1" class="LineNr"> 1 </span><span class="pythonInclude">import</span> asyncio
+<span id="L2" class="LineNr"> 2 </span><span class="pythonInclude">import</span> random
+<span id="L3" class="LineNr"> 3 </span>
+<span id="L4" class="LineNr"> 4 </span>
+<span id="L5" class="LineNr"> 5 </span><span class="Statement">async</span> <span class="pythonStatement">def</span> <span class="Function">pusher</span>(queue: asyncio.Queue):
+<span id="L6" class="LineNr"> 6 </span>    <span class="String">&quot;&quot;&quot;</span><span class="String"> Pushes an item to the queue every second. </span><span class="String">&quot;&quot;&quot;</span>
+<span id="L7" class="LineNr"> 7 </span>    counter = <span class="Number">0</span>
+<span id="L8" class="LineNr"> 8 </span>    <span class="pythonRepeat">while</span> counter &lt; <span class="Number">20</span>:
+<span id="L9" class="LineNr"> 9 </span>        <span class="Statement">await</span> queue.put(counter)
+<span id="L10" class="LineNr">10 </span>        counter += <span class="Number">1</span>
+<span id="L11" class="LineNr">11 </span>        <span class="Statement">await</span> asyncio.sleep(<span class="Number">0.5</span>)
+<span id="L12" class="LineNr">12 </span>    <span class="Statement">await</span> queue.put(DONE_SIGNAL)
+<span id="L13" class="LineNr">13 </span>
+<span id="L14" class="LineNr">14 </span>
+<span id="L15" class="LineNr">15 </span><span class="Statement">async</span> <span class="pythonStatement">def</span> <span class="Function">puller</span>(queue: asyncio.Queue, name: <span class="Function">str</span>):
+<span id="L16" class="LineNr">16 </span>    <span class="String">&quot;&quot;&quot;</span><span class="String"> Fetches an item from the queue and takes a random timespan to &quot;process&quot; it. </span><span class="String">&quot;&quot;&quot;</span>
+<span id="L17" class="LineNr">17 </span>    <span class="pythonRepeat">while</span> <span class="Function">True</span>:
+<span id="L18" class="LineNr">18 </span>        item = <span class="Statement">await</span> queue.get()
+<span id="L19" class="LineNr">19 </span>        <span class="Function">print</span>(f<span class="String">&quot;</span><span class="String">[{name:^6}] Got item: {item} (size {queue.qsize()})</span><span class="String">&quot;</span>)
+<span id="L20" class="LineNr">20 </span>        <span class="Conditional">if</span> item <span class="pythonOperator">is</span> DONE_SIGNAL:
+<span id="L21" class="LineNr">21 </span>            queue.put_nowait(DONE_SIGNAL)
+<span id="L22" class="LineNr">22 </span>            <span class="Function">print</span>(f<span class="String">&quot;</span><span class="String">[{name:^6}] Done</span><span class="String">&quot;</span>)
+<span id="L23" class="LineNr">23 </span>            <span class="pythonStatement">return</span>
+<span id="L24" class="LineNr">24 </span>        <span class="Statement">await</span> asyncio.sleep(random.random()*<span class="Number">3</span>)
+<span id="L25" class="LineNr">25 </span>        queue.task_done()
+<span id="L26" class="LineNr">26 </span>
+<span id="L27" class="LineNr">27 </span>
+<span id="L28" class="LineNr">28 </span><span class="Statement">async</span> <span class="pythonStatement">def</span> <span class="Function">main</span>():
+<span id="L29" class="LineNr">29 </span>    queue = asyncio.Queue()
+<span id="L30" class="LineNr">30 </span>    tasks = [asyncio.create_task(t) <span class="pythonRepeat">for</span> t <span class="pythonOperator">in</span> (pusher(queue),
+<span id="L31" class="LineNr">31 </span>                                              puller(queue, name=<span class="String">'</span><span class="String">Fred</span><span class="String">'</span>),
+<span id="L32" class="LineNr">32 </span>                                              puller(queue, name=<span class="String">'</span><span class="String">George</span><span class="String">'</span>))]
+<span id="L33" class="LineNr">33 </span>    <span class="Statement">await</span> asyncio.gather(*tasks)
+<span id="L34" class="LineNr">34 </span>    <span class="Function">print</span>(f<span class="String">&quot;</span><span class="String">Queue size is now {queue.qsize()}</span><span class="String">&quot;</span>)
+<span id="L35" class="LineNr">35 </span>
+<span id="L36" class="LineNr">36 </span>
+<span id="L37" class="LineNr">37 </span><span class="pythonStatement">class</span> <span class="Function">DoneSignal</span>:
+<span id="L38" class="LineNr">38 </span>    <span class="pythonStatement">def</span> <span class="Function">__repr__</span>(self):
+<span id="L39" class="LineNr">39 </span>        <span class="pythonStatement">return</span> <span class="String">'</span><span class="String">DONE_SIGNAL</span><span class="String">'</span>  <span class="Comment"># make it debug-print nicely</span>
+<span id="L40" class="LineNr">40 </span>
+<span id="L41" class="LineNr">41 </span>
+<span id="L42" class="LineNr">42 </span>DONE_SIGNAL = DoneSignal()
+<span id="L43" class="LineNr">43 </span>
+<span id="L44" class="LineNr">44 </span>
+<span id="L45" class="LineNr">45 </span><span class="Conditional">if</span> __name__ == <span class="String">'</span><span class="String">__main__</span><span class="String">'</span>:
+<span id="L46" class="LineNr">46 </span>    main_loop = asyncio.get_event_loop()
+<span id="L47" class="LineNr">47 </span>    main_loop.run_until_complete(main())
+<span id="L48" class="LineNr">48 </span>
+</pre>
+</body>
+</html>
+<!-- vim: set foldmethod=manual : -->
