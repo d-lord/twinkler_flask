@@ -2,19 +2,37 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <title>Twinkler</title>
     <style>
-        label {
-        }
         textarea {
             margin: 0.4em 0;
-            display: block;
+            width: 80%;
+            background-color: #303030;
+            color: #f6f3e8;
+            flex-grow: 1;
+        }
+        body {
+            background-color: #303030;
+            color: #f6f3e8;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+        }
+        form {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            padding: 0 0 1em 0;
+            box-sizing: border-box;
         }
     </style>
 </head>
 <body>
 <form action="{{ url_for('markup') }}" method="post">
-    <label for="code">What code do you want formatted?</label>
+    <label for="code"><h1>What code do you want formatted?</h1></label>
     <textarea id="code" name="code" rows="20" cols="80"></textarea>
     <input type="submit" value="Submit">
 </form>
