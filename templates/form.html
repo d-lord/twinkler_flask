@@ -26,14 +26,26 @@
             align-items: center;
             flex-direction: column;
             height: 100vh;
-            padding: 0 0 1em 0;
+            padding: 0 0 0.5em 0;
             box-sizing: border-box;
+        }
+        h1 {
+            margin-bottom: 0.1em;
+            margin-top: 0.2em;
+        }
+        p {
+            margin-top: 0;
+            font-size: 0.5em;
+        }
+        a, a:visited {
+            color: #f6f3e8;
         }
     </style>
 </head>
 <body>
 <form action="{{ url_for('markup') }}" method="post" id="form">
     <label for="code"><h1>What code do you want to sparkle? ✨</h1></label>
+    <p>These colours come from the emacs <a href="https://github.com/emacs-mirror/emacs/blob/master/etc/themes/wombat-theme.el">wombat</a> theme.</p>
     <textarea id="code" name="code"></textarea>
     <input type="submit" value="Submit">
 </form>
