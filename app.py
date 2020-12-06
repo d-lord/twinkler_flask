@@ -1,6 +1,6 @@
 from typing import Tuple, Iterable
 
-from flask import Flask, render_template, request, make_response
+from flask import Flask, render_template, request, make_response, redirect
 from pygments import highlight
 from pygments.lexers import guess_lexer
 from pygments.formatters import HtmlFormatter
@@ -28,7 +28,12 @@ pygments_css_classes, pygments_css_variables = get_pygments_classes()
 @app.route('/', methods=['GET', 'POST'])
 def markup():
     if request.method == 'POST':
-        code = request.form['code']
+        try:
+            code = request.form['code']
+            if not code:
+                raise FileNotFoundError
+        except:
+            return redirect('/')
         lexer = guess_lexer(code)
         result = highlight(code, lexer, formatter)
         get_pygments_classes()
