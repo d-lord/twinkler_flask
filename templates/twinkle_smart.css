@@ -1,12 +1,17 @@
 :root {
-     /* normally this would contain variable definitions, but the JS does that for us */
-    font-size: 16px;
+     /* declare variables and give them a default, which the JS will override shortly */
     {% for css_class, css_variable in css_classes_and_variables %}
     --{{ css_variable }}: white;{% endfor %}
 }
 
 body {
     background-color: #303030;
+    font-size: 16px;
+}
+@media only screen and (max-device-width: 480px) {
+    body {
+        font-size: 28px;
+    }
 }
 div.highlight {
     margin: -1em 0;
