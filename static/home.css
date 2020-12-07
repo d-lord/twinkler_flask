@@ -23,6 +23,9 @@ textarea {
     background-color: #303030;
     color: #f6f3e8;
     flex-grow: 1;
+    border: 0.15rem solid #ccaa8f;
+    border-radius: 0.3rem;
+    outline: none;
 }
 textarea::placeholder {
     font-size: 1rem;
