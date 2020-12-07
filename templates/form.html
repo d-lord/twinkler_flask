@@ -10,15 +10,16 @@
 <form action="{{ url_for('markup') }}" method="post" id="form">
     <label for="code"><h1>What code do you want to sparkle? ✨</h1></label>
     <p>These colours come from the emacs <a href="https://github.com/emacs-mirror/emacs/blob/master/etc/themes/wombat-theme.el">wombat</a> theme.</p>
-    <textarea id="code" name="code"></textarea>
+    <textarea id="code" name="code" autofocus spellcheck="false" placeholder="# Don't put confidential code into text boxes on the internet"></textarea>
     <input type="submit" value="Submit">
 </form>
 <script>
     // David Walsh is a legend: https://davidwalsh.name/command-enter-submit-forms
+    // I've extended it to enable ctrl+enter too
     const form = document.getElementById("form");
     form.addEventListener('keydown', function (e) {
         console.log("KeyDown fired");
-        if (!(e.keyCode === 13 && e.metaKey)) return;
+        if (!((e.keyCode === 13) && (e.metaKey || e.ctrlKey))) return;
 
         const target = e.target;
         if (target.form) {

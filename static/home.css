@@ -5,6 +5,9 @@ textarea {
     color: #f6f3e8;
     flex-grow: 1;
 }
+textarea::placeholder {
+    font-size: 2em;
+}
 
 body {
     background-color: #303030;
