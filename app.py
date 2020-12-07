@@ -8,6 +8,13 @@ app = Flask(__name__)
 
 app.config['TEMPLATES_AUTO_RELOAD'] = True
 
+# These templates are rendered once at launch and then re-used for every request.
+# They're global variables as that really seems like the most Flasky way to do it:
+# flask.g: is per "application context" which is per-request, despite the name
+# flask.current_app['varname']: doesn't work like that
+# flask.current_app['config']: works, but feels wrong as it's not configuration
+# flask.session: is per user/client session, not app 'session'
+rendered_smart_css, rendered_smart_js = None, None
 # pygments stuff
 formatter = HtmlFormatter(linenos=False)
 
@@ -22,7 +29,17 @@ def get_pygments_classes() -> Tuple[Iterable[str], Iterable[str]]:
     var_names = [line.replace('.', '. ', 1).replace('.', '-').replace(' ', '') for line in classes]
     return classes, var_names
 
-pygments_css_classes, pygments_css_variables = get_pygments_classes()
+
+@app.before_first_request
+def set_up() -> None:
+    global rendered_smart_css, rendered_smart_js
+    pygments_css_classes, pygments_css_variables = get_pygments_classes()
+    rendered_smart_css = render_template(
+        'twinkle_smart.css',
+        # we must list() the zip() because it will be iterated over multiple times
+        css_classes_and_variables=list(zip(pygments_css_classes, pygments_css_variables)))
+    rendered_smart_js = render_template('twinkle_smart.js', css_variables=pygments_css_variables)
+    rendered_smart_css = rendered_smart_css
 
 
 @app.route('/', methods=['GET', 'POST'])
@@ -44,10 +61,7 @@ def markup():
 
 @app.route('/smart_css.css')
 def smart_css():
-    rendered = render_template('twinkle_smart.css',
-                               # we must list() the zip() because it will be iterated over multiple times
-                               css_classes_and_variables=list(zip(pygments_css_classes, pygments_css_variables)))
-    response = make_response(rendered)
+    response = make_response(rendered_smart_css)
     # set the content-type manually; by default it'll be text/html
     response.headers['Content-Type'] = 'text/css'
     return response
@@ -55,7 +69,6 @@ def smart_css():
 
 @app.route('/smart_js.js')
 def smart_js():
-    rendered = render_template('twinkle_smart.js', css_variables=pygments_css_variables)
-    response = make_response(rendered)
+    response = make_response(rendered_smart_js)
     response.headers['Content-Type'] = 'application/javascript'
     return response
