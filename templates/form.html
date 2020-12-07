@@ -3,8 +3,22 @@
 <head>
     <meta charset="UTF-8">
     <title>Twinkler</title>
+    {% set base_url = "https://twinkler.lord.geek.nz" %}
+    {% set social_title = "Twinkler" %}
+    {% set social_description = "Festive code highlighting." %}
+    {% set thumbnail_url = base_url ~ url_for('static', filename='thumbnail.png') %}
     <link rel="stylesheet" href="{{ url_for('static', filename='home.css') }}">
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <meta property="og:title" content="{{ social_title }}">
+    <meta property="og:url" content="{{ base_url }}">
+    <meta property="og:description" content="{{ social_description }}">
+    <meta property="og:image" content="{{ thumbnail_url }}">
+    <meta property="og:type" content="article">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:site" content="@dal_geek">
+    <meta name="twitter:title" content="{{ social_title }}">
+    <meta name="twitter:description" content="{{ social_description }}">
+    <meta name="twitter:image" content="{{ thumbnail_url }}">
 </head>
 <body>
 <form action="{{ url_for('markup') }}" method="post" id="form">
