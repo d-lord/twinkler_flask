@@ -42,11 +42,17 @@ h1 {
 }
 
 p {
-    margin-top: 0;
+    margin: 0 auto;
     font-size: 1rem;
-    padding-inline: 0.2rem;
 }
-
+#examples {
+    display: flex;
+    margin: 0.3em auto;
+}
+#examples button {
+    height: 2em;
+    margin: 0 0.3em;
+}
 a, a:visited {
     color: #f6f3e8;
 }

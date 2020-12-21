@@ -27,6 +27,11 @@
 <form action="{{ url_for('markup') }}" method="post" id="form">
     <label for="code"><h1>What code do you want to sparkle? ✨</h1></label>
     <p>These colours come from the emacs <a href="https://github.com/emacs-mirror/emacs/blob/master/etc/themes/wombat-theme.el">wombat</a> theme.</p>
+    <div id="examples">
+        <button onclick="code.textContent = example1; return false">Example 1</button>
+        <button onclick="code.textContent = example2; return false">Example 2</button>
+        <button onclick="code.textContent = example3; return false">Example 3</button>
+    </div>
     <textarea id="code" name="code" autofocus spellcheck="false" placeholder="# Don't put confidential code into text boxes on the internet"></textarea>
     <input type="submit" value="Submit">
 </form>
@@ -43,6 +48,366 @@
             target.form.submit();
         }
     });
+</script>
+<script>
+const code = document.getElementById('code');
+
+const example1 = `html, body {
+    margin: 0;
+    padding: 0;
+    font-size: 28px;
+}
+body {
+    background-color: #303030;
+    color: #f6f3e8;
+}
+
+form {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;
+    height: 100vh;
+    padding: 0 0 0.5em 0;
+    box-sizing: border-box;
+}
+textarea {
+    margin: 0.4em 0;
+    width: 85%;
+    background-color: #303030;
+    color: #f6f3e8;
+    flex-grow: 1;
+    border: 0.15rem solid #ccaa8f;
+    border-radius: 0.3rem;
+    outline: none;
+}
+textarea::placeholder {
+    font-size: 1rem;
+}
+input[type="submit"] {
+    font-size: 0.7rem;
+    margin-top: 0.5rem;
+}
+
+h1 {
+    margin-bottom: 0.1em;
+    margin-top: 0.2em;
+    padding-inline: 0.2rem;
+}
+
+p {
+    margin-top: 0;
+    font-size: 1rem;
+    padding-inline: 0.2rem;
+}
+
+a, a:visited {
+    color: #f6f3e8;
+}
+
+/* mobile */
+@media only screen and (max-device-width: 850px) {
+    html {
+        font-size: 50px;
+    }
+    h1 {
+        font-size: 2rem;
+        padding-bottom: 0.4rem;
+        width: 90%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    p {
+        font-size: 1rem;
+        width: 90%;
+        margin-left: auto;
+        margin-right: auto;
+    }
+    textarea {
+        width: 90%;
+        margin: 0 auto;
+    }
+    textarea::placeholder {
+        font-size: 0.8rem;
+    }
+}`;
+const example2 = `(require 's)
+
+(defvar-local bulletin-mode-marks nil
+  "Marks denoting the start of each bulletin in the buffer.")
+
+;; functions for the 80-dash separator (AusCERT convention)
+
+(defun make-bulletin-separator ()
+  "Return a standard string of 80 dashes to separate bulletins (plus blank lines)."
+  ;; The dashes should be displayed as special syntax. (font-lock face?)
+  (concat "\n\n" (make-string 80 ?-) "\n\n"))
+
+(defun highlight-80-dashes (&optional color)
+  "Set a line of exactly 80 dashes to be highlighted."
+  (interactive)
+;  (hi-lock-mode 1)
+  (highlight-regexp "^-\\{80\\}$" (or color 'hi-yellow)))
+;; Here's the problem with this: the highlight-regexp command only highlights existing matches.
+;; Any matches created after this command is invoked will not be highlighted.
+;; So... either find a way to ask it to detect them constantly (like vim does), or re-run this after the inserts?
+
+(defun unhighlight-80-dashes ()
+  "Undo highlight-80-dashes."
+  (unhighlight-regexp "^-\\{80\\}$"))
+
+(make-obsolete 'highlight-80-dashes 'make-bulletin-separator "10/01/20")
+
+;;
+;; fetching functions
+;;
+
+(defun get-urls-from-urls-buffer ()
+  "Read line-separated URLs from the buffer named 'urls'."
+  (with-current-buffer "urls" (mapcar #'s-trim (split-string (buffer-string) "\n" t))))
+
+(defun interactively-read-urls ()
+  "Interactively read URLs until an empty line is entered (but not EOF).
+https://www.reddit.com/r/emacs/comments/6lzpre/use_interactive_list_readstring_to_read_arbitrary/djxuzst"
+  (let (urls url done)
+    (while (not done)
+      (setq url (read-string "URL (empty to finish): "))
+      (if (= (length url) 0)
+	  (setq done t)
+	(push url urls)))
+    (reverse urls)))
+
+(defun fetch-urls-to-current-buffer (urls)
+  "Comparable to \`dashcat <(sexier-tables http://a) <(sexier-tables http://b) ...\`. Also sets bulletin-mode-marks and uses a progress reporter."
+  (interactive)
+  (setq bulletin-mode-marks nil)
+  (let* ((separator (make-bulletin-separator))
+         (first-loop t)
+         (progress-reporter (make-progress-reporter "Fetching advisories..." 1 (length urls))) ;; useless until we start updating it inside the url loop
+         (i 0))
+    (dolist (url urls)
+      (unless (= i 0)(insert separator))
+      (push (point-marker) bulletin-mode-marks)
+      (call-process "sexier-tables" nil t nil url)
+      (incf i)
+      (progress-reporter-update progress-reporter i))
+    (progress-reporter-done progress-reporter))
+  (setq bulletin-mode-marks (nreverse bulletin-mode-marks)))
+  ; might also be worth replacing /^\s+$/ with // all through the document (to avoid w3m weirdnesses like \n\n\t\n)
+
+(defun fetch-urls-interactive ()
+  "Read URLs from the minibuffer until an empty line is entered, then fetch them into the current buffer."
+  (interactive)
+  (fetch-urls-to-current-buffer (interactively-read-urls))
+  (buttonize-buffer-with-cves (current-buffer))
+  (buttonize-buffer-with-bulletin-ids (current-buffer)))
+
+(defun fetch-urls-from-urls-buffer ()
+  "Read URLs from the 'urls' buffer, and fetch them into the current buffer."
+  (interactive)
+  (fetch-urls-to-current-buffer (get-urls-from-urls-buffer))
+  (buttonize-buffer-with-cves (current-buffer))
+  (buttonize-buffer-with-bulletin-ids (current-buffer)))
+
+
+;;
+;; navigation functions
+;;
+
+(defun previous-bulletin (pos)
+  "Searches the bulletin-mode-marks list for the latest mark before 'pos'."
+  (car (reverse (seq-take-while
+		     #'(lambda (elem) (< elem pos))
+		     bulletin-mode-marks)))
+  ;; what if bulletin-mode-marks is empty?
+  )
+
+(defun goto-previous-bulletin ()
+  "Jump to the nearest bulletin before point."
+  (interactive)
+  (let ((destination (previous-bulletin (point))))
+    (if destination
+	(goto-char destination)
+      ;; or go to: first bulletin? point? point-min?
+      (message "No previous bulletin"))))
+
+(defun next-bulletin (pos)
+  "Searches the bulletin-mode-marks list for the first mark after 'pos'."
+  (car (seq-drop-while #'(lambda (elem) (not (> elem pos))) bulletin-mode-marks)))
+
+(defun goto-next-bulletin ()
+  "Jump to the next bulletin after point."
+  ;; If there isn't one, just prints an error.
+  ;; This is (currently) bound to C-M-n. Its counterpart is forward-list. Maybe should be C-m-e instead, end-of-defun. In which case it should be end-of-bulletin, which would need to be tracked (or inferred from the next separator?).
+  (interactive)
+  (let ((destination (next-bulletin (point))))
+    (if destination
+        (goto-char destination)
+        (message "No next bulletin"))))
+
+(defun buttonize-buffer-with-cves (bufname)
+  "Mark CVEs in a given buffer as hyperlinks."
+  ; would be nice if they could be right-clicked (or some other option) to visit AusCERT's version instead
+  (interactive "bBuffer to add CVE buttons to: ")
+  (save-excursion
+    (with-current-buffer bufname
+      (goto-char (point-min))
+      (while (re-search-forward "CVE-[[:digit:]]\\{4\\}-[[:digit:]]\\{4,\\}" nil t)
+        (let* ((start (match-beginning 0))
+               (end (match-end 0))
+               (cve (buffer-substring start end)))
+          (make-button start end
+                       'url (format "https://nvd.nist.gov/vuln/detail/%s" cve)
+                       'help-echo (format "Visit %s at NVD" cve)
+                       'action (lambda (button) (call-process "open" nil 0 nil (button-get button 'url)))
+                       'follow-link t
+                       ))))))
+
+(defun buttonize-buffer-with-bulletin-ids (bufname)
+  "Mark ESBs/ASBs in a given buffer as hyperlinks."
+  (interactive "bBuffer to add ESB/ASB buttons to: ")
+  (save-excursion
+    (with-current-buffer bufname
+      (goto-char (point-min))
+      (while (re-search-forward "[EA]SB-[[:digit:]]\\{4\\}.[[:digit:]]\\{4\\}\\(.[[:digit:]]\\)?" nil t)
+        (let* ((start (match-beginning 0))
+               (end (match-end 0))
+               (target-bulletin-id (buffer-substring start end)))
+          (make-button start end
+                       'url (format "https://auscert.org.au/bulletins/%s/" target-bulletin-id)
+                       'help-echo (format "Visit %s at AusCERT" target-bulletin-id)
+                       'action (lambda (button) (call-process "open" nil 0 nil (button-get button 'url)))
+                       'follow-link t
+                       )))))
+  )
+
+(defun set-id-title-and-buffer-name (bufname)
+  "Parse the AusCERT metadata to set bulletin ID and product name, and set the buffer name based on those."
+  ;; if another buffer exists with that name already, this will fail, and that condition is likely if the review process touches the same bulletin multiple times.
+  (save-excursion
+    (with-current-buffer bufname
+      (goto-char (point-min))
+      (re-search-forward "[AE]SB-[[:digit:]]\\{4\\}\\.[[:digit:]]\\{4\\}\\(\\.[[:digit:]]\\)?" nil t)
+      (setq-local bulletin-id (match-string-no-properties 0))
+      (goto-char (point-min))
+      (re-search-forward "^Product:\s+\\(.*\\)" nil t)
+      (setq-local bulletin-product (match-string-no-properties 1))
+      ;; it'd be nice if product were products plural, but I'm not messing with that regex right now
+      (rename-buffer (concat bulletin-id ": " bulletin-product)))
+    ))
+
+
+;; font lock aka syntax highlighting
+;; http://ergoemacs.org/emacs/elisp_font_lock_mode.html
+(defcustom bulletin-mode-line-separator-face
+  font-lock-warning-face
+  "Face for the separator line between bulletins."
+  :type 'face
+  :group 'bulletin)
+
+; build the mode's map which will be set as font-lock-defaults
+(defvar bulletin-mode-highlights nil)
+(setq bulletin-mode-highlights
+      '(("^-\\{80\\}$" . bulletin-mode-line-separator-face)))
+
+;;
+;; core
+;; https://www.gnu.org/software/emacs/manual/html_node/elisp/Derived-Modes.html
+;;
+
+(defvar bulletin-mode-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map (kbd "C-c f") 'fetch-urls-interactive)
+    (define-key map (kbd "C-c g") 'fetch-urls-from-urls-buffer)
+    (define-key map (kbd "C-M-p") 'goto-previous-bulletin)
+    (define-key map (kbd "C-M-n") 'goto-next-bulletin)
+    (define-key map (kbd "<C-tab>") 'forward-button)
+    (define-key map (kbd "<C-S-tab>") 'backward-button)
+    map))
+
+;; much of the below is drawn from: https://www.gnu.org/software/emacs/manual/html_node/elisp/Major-Mode-Conventions.html#Major-Mode-Conventions
+;;;###autoload
+(define-derived-mode bulletin-mode text-mode "Bulletin"
+  "Create AusCERT bulletins with style."
+  :group 'bulletin
+  :after-hook (progn
+                (goto-address-mode)
+                ;; (whitespace-mode) ; for highlighting long lines: just gotta turn off showing newlines, tabs, spaces etc
+                (condition-case nil ; if the rename fails, eg we have multiple buffers about the same draft, don't abort the rest of the after-hook
+                    (set-id-title-and-buffer-name (current-buffer))
+                  (error (message "Unable to determine bulletin ID and product from buffer contents")))
+                (buttonize-buffer-with-cves (current-buffer))
+                (buttonize-buffer-with-bulletin-ids (current-buffer)))
+  (setq font-lock-defaults '(bulletin-mode-highlights))
+)
+
+; ideally this regex would start with \\\`, but it appears that simply cannot match in this context [dal 10/01/2020]
+;;;###autoload
+(add-to-list 'auto-mode-alist '("Bulletin\\.txt\\'" . bulletin-mode))
+
+;;;###autoload
+(provide 'bulletin-mode)`;
+const example3 = `<!DOCTYPE html>
+<meta charset="UTF-8">
+<html>
+<head>
+<title>lord.geek.nz</title>
+<link href="https://fonts.googleapis.com/css?family=Droid+Sans&subset=latin&display=swap" rel="stylesheet" async>
+<link rel="stylesheet" type="text/css" href="style.css">
+<link rel="apple-touch-icon" sizes="57x57" href="/apple-touch-icon-57x57.png">
+<link rel="apple-touch-icon" sizes="60x60" href="/apple-touch-icon-60x60.png">
+<link rel="apple-touch-icon" sizes="72x72" href="/apple-touch-icon-72x72.png">
+<link rel="apple-touch-icon" sizes="76x76" href="/apple-touch-icon-76x76.png">
+<link rel="apple-touch-icon" sizes="114x114" href="/apple-touch-icon-114x114.png">
+<link rel="apple-touch-icon" sizes="120x120" href="/apple-touch-icon-120x120.png">
+<link rel="apple-touch-icon" sizes="144x144" href="/apple-touch-icon-144x144.png">
+<link rel="apple-touch-icon" sizes="152x152" href="/apple-touch-icon-152x152.png">
+<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon-180x180.png">
+<link rel="icon" type="image/png" href="/favicon-32x32.png" sizes="32x32">
+<link rel="icon" type="image/png" href="/android-chrome-192x192.png" sizes="192x192">
+<link rel="icon" type="image/png" href="/favicon-96x96.png" sizes="96x96">
+<link rel="icon" type="image/png" href="/favicon-16x16.png" sizes="16x16">
+<link rel="manifest" href="/manifest.json">
+<link rel="mask-icon" href="/safari-pinned-tab.svg" color="#5bbad5">
+<meta name="msapplication-TileColor" content="#da532c">
+<meta name="msapplication-TileImage" content="/mstile-144x144.png">
+<meta name="theme-color" content="#ffffff">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+<div id="topContainer">
+    <header>
+	<h1><a href="https://blog.lord.geek.nz">blog</a></h1>
+	<h1><a href="/f/David-Lord-CV-April-2019.pdf">resumé</a></h1>
+    </header>
+    <div id="imageContainer">
+	<picture id="focusImage">
+	    <source type="image/webp" srcset=
+	    /"resources/central-480w.webp 480w,
+	    /resources/central-720w.webp 720w,
+	    /resources/central-1080w.webp 1080w,
+	    /resources/central-1440w.webp 1440w,
+	    /resources/central-max.webp 3024w">
+	    <source type="image/jpeg" srcset=
+	    "/resources/central-480w.jpg 480w,
+	    /resources/central-720w.jpg 720w,
+	    /resources/central-1440w.jpg 1440w,
+	    /resources/central-max.jpg 3024w">
+	    <img src="/resources/central-max.webp" alt="Tree and clouds">
+	</picture>
+    </div>
+    <footer>
+	<h1><a href="/shadow">shadow</a></h1>
+	<h1><a href="/radar">radar</a></h1>
+	<h1><a href="/wtf">wtf</a></h1>
+	<h1><a href="/tsuro">tsuro</a></h1>
+	<h1><a href="/gauss">gauss</a></h1>
+	<h1><a href="/gauss-mono">gauss-mono</a></h1>
+	<h1><a href="/please_wait">please wait</a></h1>
+    </footer>
+</div>
+</body>
+</html>`;
 </script>
 </body>
 </html>

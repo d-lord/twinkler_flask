@@ -6,7 +6,7 @@
     <title>Twinkle</title>
     <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
 </head>
-<body onLoad="transitionOff(); change(); transitionOn();">
+<body onLoad="toggle();">
 {{ code | safe }} {# we do want to embed pygments' output as raw HTML, so we must mark it as 'safe'. boy, I hope their output is indeed safe. #}
-<button onClick="toggle();" id="the-button">Begin</button>
+<button onClick="toggle();" id="the-button">Cease</button>
 </html>
