@@ -17,7 +17,7 @@ function toggle() {
     } else {
         clearTimeout(timer);
         timer = undefined;
-        the_button.textContent = "Begin"
+        the_button.textContent = "Resume"
     }
 }
 
